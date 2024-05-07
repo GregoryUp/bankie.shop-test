@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ImageController;
+use App\Models\Image;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,5 +16,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('index');
 });
+
+Route::get('/list', [ImageController::class, 'all']);
+Route::post('/upload', [ImageController::class, 'upload']);
+Route::get('/preview', [ImageController::class, 'preview']);
+Route::get('/download', [ImageController::class, 'download']);
