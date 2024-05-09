@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ImageUploadRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
@@ -13,56 +14,15 @@ class ImageController extends Controller
 {
 
     public function all(Request $request) {
-        $sortBy = $request->query('sortBy');
-
-        $query = Image::query();
-
-        switch ($sortBy) {
-            case 'name':
-                $query->orderBy('name');
-                break;
-
-            case 'new':
-                $query->latest();
-                break;
-
-            case 'old':
-                $query->oldest();
-                break;
-
-            default:
-                $query->select('*');
-                break;
-        }
-
-        $files = $query->get();
+        $sortBy = $request->query('sortBy', '');
+        $files = Image::query()->sortBy($sortBy)->get();
 
         return view('list', ['files' => $files]);
     }
 
-    public function upload(Request $request)
+    public function upload(ImageUploadRequest $request)
     {
-        if (!$request->hasFile('main_slider')) return view('upload', ['status' => 'ERROR', 'message' => 'Ни один файл не был передан']);
-
         $files = $request->file('main_slider');
-
-        if (count($files) > 5) return view('upload', ['upload' => 'ERROR', 'message' => 'Лимит количества картинок превышен']);
-
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'main_slider.*' => 'image|mimes:jpeg,png,jpg,gif|max:5012'
-            ],
-            [
-                'main_slider.*.image' => 'Файл должен быть изображением.',
-                'main_slider.*.mimes' => 'Поддерживаемые форматы изображений: jpeg, png, jpg, gif.',
-                'main_slider.*.max' => 'Максимальный размер изображения 2MB.',
-            ]
-        );
-
-        if ($validator->fails()) {
-            return view('upload', ['status' => 'ERROR', 'message' => $validator->messages()->all()[0]]);
-        }
 
         $images = [];
 
@@ -89,14 +49,13 @@ class ImageController extends Controller
 
         Image::insert($images);
 
-        return view('upload', ['status' => 'SUCCESS', 'message' => 'Сохранено']);
+        return redirect('/list')->with('message', 'Загружено');
     }
 
     public function preview(Request $request)
     {
         $id = $request->query('id');
-        $image = Image::find($id);
-        if (!$image) abort(404);
+        $image = Image::findOrFail($id);
 
         $originalName = storage_path("app/{$image->path}");
         $thumb = ImageManagerStatic::make($originalName)->fit(300, 300);
@@ -107,8 +66,7 @@ class ImageController extends Controller
     public function download(Request $request)
     {
         $id = $request->query('id');
-        $image = Image::find($id);
-        if (!$image) abort(404);
+        $image = Image::findOrFail($id);
 
         $imagePath = storage_path("app/{$image->path}");
 

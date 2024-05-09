@@ -3,6 +3,10 @@
 <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.7.2/lightgallery.min.js"></script>
 <div class="container">
 
+    @if(session()->get('message'))
+        <h1 class="text-success">{{session()->get('message')}}</h1>
+    @endif
+
     <nav class="navbar navbar-light">
         <ul class="nav nav-pills">
             <li class="nav-item">

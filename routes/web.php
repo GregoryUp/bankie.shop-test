@@ -21,5 +21,6 @@ Route::get('/', function () {
 
 Route::get('/list', [ImageController::class, 'all']);
 Route::post('/upload', [ImageController::class, 'upload']);
+
 Route::get('/preview', [ImageController::class, 'preview']);
 Route::get('/download', [ImageController::class, 'download']);
